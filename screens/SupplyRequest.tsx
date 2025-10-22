@@ -278,16 +278,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E3F2FD', // Light blue background
   },
   formContainer: {
     flex: 0.7,
-    padding: 16,
+    padding: 20,
   },
   queueContainer: {
     flex: 0.3,
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    margin: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
   },
   sectionTitle: {
     fontSize: 18,

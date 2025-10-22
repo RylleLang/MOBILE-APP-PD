@@ -1,5 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 
 function Logout() {
@@ -13,9 +16,14 @@ function Logout() {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Yes',
-          onPress: () => {
-            // Simulate logout - in real app, clear auth tokens, etc.
-            navigation.navigate('Dashboard' as never);
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              await AsyncStorage.removeItem('userLoggedIn');
+              // Navigation will automatically switch to Login screen due to auth state change
+            } catch (error) {
+              Alert.alert('Error', 'Failed to logout');
+            }
           },
         },
       ]
@@ -37,23 +45,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#E3F2FD', // Light blue background
+    padding: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#0D47A1', // Dark blue
+    textAlign: 'center',
+    marginBottom: 30,
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   logoutButton: {
-    backgroundColor: '#dc3545',
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: '#D32F2F', // Red for logout
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#D32F2F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
   },
   logoutText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '600',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
 });
 

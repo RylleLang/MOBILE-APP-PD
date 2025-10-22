@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTaskContext, Task } from '../components/TaskContext';
 
 type TasksProps = {
@@ -7,7 +7,7 @@ type TasksProps = {
 };
 
 function Tasks({ navigation }: TasksProps) {
-	const { tasks } = useTaskContext();
+	const { tasks, isDarkMode } = useTaskContext();
 
 	const renderTask = ({ item }: { item: Task }) => (
 		<View style={styles.taskItem}>
@@ -24,8 +24,9 @@ function Tasks({ navigation }: TasksProps) {
 	);
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>Delivery Queue ({tasks.length})</Text>
+		<View style={[styles.container, isDarkMode && styles.darkContainer]}>
+			<Text style={[styles.pageTitle, isDarkMode && styles.darkText]}>Tasks</Text>
+			<Text style={[styles.title, isDarkMode && styles.darkText]}>Delivery Queue ({tasks.length})</Text>
 			<FlatList
 				data={tasks}
 				keyExtractor={(item) => item.id}
@@ -44,83 +45,110 @@ function Tasks({ navigation }: TasksProps) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#f5f5f5',
-		padding: 16,
+		backgroundColor: '#E3F2FD', // Light blue background
+		padding: 20,
+	},
+	darkContainer: {
+		backgroundColor: '#121212', // Dark background
+	},
+	pageTitle: {
+		fontSize: 28,
+		fontWeight: 'bold',
+		color: '#0D47A1',
+		marginBottom: 10,
+		textAlign: 'center',
 	},
 	title: {
-		fontSize: 24,
-		fontWeight: 'bold',
-		marginBottom: 16,
+		fontSize: 28,
+		fontWeight: '700',
+		color: '#0D47A1', // Dark blue
+		textAlign: 'center',
+		marginBottom: 24,
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+	},
+	darkText: {
+		color: '#FFFFFF', // White text for dark mode
 	},
 	taskItem: {
-		backgroundColor: '#fff',
-		padding: 16,
-		borderRadius: 8,
-		marginBottom: 8,
+		backgroundColor: 'white',
+		padding: 20,
+		borderRadius: 16,
+		marginBottom: 16,
 		shadowColor: '#000',
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,
-		shadowRadius: 4,
-		elevation: 2,
+		shadowRadius: 8,
+		elevation: 4,
+		borderWidth: 1,
+		borderColor: '#BBDEFB',
 	},
 	taskHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		marginBottom: 8,
+		marginBottom: 12,
 	},
 	taskId: {
-		fontSize: 18,
-		fontWeight: 'bold',
+		fontSize: 20,
+		fontWeight: '600',
+		color: '#0D47A1',
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
 	},
 	priorityTag: {
-		paddingHorizontal: 8,
-		paddingVertical: 4,
-		borderRadius: 4,
+		paddingHorizontal: 12,
+		paddingVertical: 6,
+		borderRadius: 8,
 	},
 	normalTag: {
-		backgroundColor: '#007bff',
+		backgroundColor: '#1976D2', // Medical blue
 	},
 	urgentTag: {
-		backgroundColor: '#dc3545',
+		backgroundColor: '#D32F2F', // Red for urgent
 	},
 	priorityText: {
 		color: '#fff',
 		fontSize: 12,
-		fontWeight: 'bold',
+		fontWeight: '600',
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
 	},
 	sourceDest: {
 		fontSize: 16,
-		marginBottom: 4,
+		marginBottom: 8,
+		color: '#424242',
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
 	},
 	items: {
 		fontSize: 16,
-		marginBottom: 4,
+		marginBottom: 8,
+		color: '#424242',
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
 	},
 	requester: {
 		fontSize: 14,
-		color: '#666',
+		color: '#757575',
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
 	},
 	fab: {
 		position: 'absolute',
-		bottom: 20,
-		right: 20,
-		width: 60,
-		height: 60,
-		borderRadius: 30,
-		backgroundColor: '#007bff',
+		bottom: 30,
+		right: 30,
+		width: 70,
+		height: 70,
+		borderRadius: 35,
+		backgroundColor: '#1976D2', // Medical blue
 		justifyContent: 'center',
 		alignItems: 'center',
-		shadowColor: '#000',
-		shadowOffset: { width: 0, height: 2 },
+		shadowColor: '#1976D2',
+		shadowOffset: { width: 0, height: 4 },
 		shadowOpacity: 0.3,
-		shadowRadius: 4,
-		elevation: 5,
+		shadowRadius: 8,
+		elevation: 8,
 	},
 	fabText: {
 		color: '#fff',
-		fontSize: 30,
-		fontWeight: 'bold',
+		fontSize: 32,
+		fontWeight: '700',
+		fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
 	},
 });
 

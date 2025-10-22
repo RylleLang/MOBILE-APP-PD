@@ -13,6 +13,12 @@ export interface Task {
 interface TaskContextType {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'timestamp'>) => void;
+  isFaceAuthenticated: boolean;
+  setIsFaceAuthenticated: (authenticated: boolean) => void;
+  isVoiceEnabled: boolean;
+  setIsVoiceEnabled: (enabled: boolean) => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (dark: boolean) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -51,6 +57,10 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     },
   ]);
 
+  const [isFaceAuthenticated, setIsFaceAuthenticated] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   const addTask = (newTask: Omit<Task, 'id' | 'timestamp'>) => {
     const task: Task = {
       ...newTask,
@@ -61,7 +71,16 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   };
 
   return (
-    <TaskContext.Provider value={{ tasks, addTask }}>
+    <TaskContext.Provider value={{
+      tasks,
+      addTask,
+      isFaceAuthenticated,
+      setIsFaceAuthenticated,
+      isVoiceEnabled,
+      setIsVoiceEnabled,
+      isDarkMode,
+      setIsDarkMode
+    }}>
       {children}
     </TaskContext.Provider>
   );

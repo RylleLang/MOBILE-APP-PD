@@ -24,7 +24,6 @@ const RobotStatus: React.FC<RobotStatusProps> = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Robot Status</Text>
-        <Text style={styles.id}>ID: {id}</Text>
       </View>
       <View style={styles.content}>
         <View style={styles.info}>
@@ -49,7 +48,7 @@ const RobotStatus: React.FC<RobotStatusProps> = ({
             <Text style={styles.buttonText}>Resume</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.stop]} onPress={onEmergencyStop}>
-            <Text style={styles.buttonText}>Emergency Stop</Text>
+            <Text style={styles.buttonText}>Stop</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -63,11 +62,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     margin: 16,
+    marginBottom: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#BBDEFB',
   },
   header: {
     flexDirection: 'row',
@@ -78,10 +80,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '600',
-  },
-  id: {
-    fontSize: 13,
-    color: '#888',
   },
   content: {
     flexDirection: 'column',
@@ -112,11 +110,13 @@ const styles = StyleSheet.create({
   },
   buttons: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
   },
   button: {
     paddingVertical: 8,
-    paddingHorizontal: 18,
+    paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: 'center',
   },

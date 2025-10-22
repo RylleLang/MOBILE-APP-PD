@@ -3,15 +3,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebaseConfig';
+import Login from './screens/Login';
 import Dashboard from './screens/Dashboard';
 import Tasks from './screens/Tasks';
 import RobotMap from './screens/RobotMap';
-import Monitoring from './screens/Monitoring';
 import Reports from './screens/Reports';
 import Settings from './screens/Settings';
-import Help from './screens/Help';
 import Logout from './screens/Logout';
 import SupplyRequest from './screens/SupplyRequest';
+import FaceAuth from './screens/FaceAuth';
+import VoiceAuth from './screens/VoiceAuth';
 import { TaskProvider } from './components/TaskContext';
 
 const Tab = createBottomTabNavigator();
@@ -31,16 +36,16 @@ function TabNavigator() {
             iconName = focused ? 'list' : 'list-outline';
           } else if (route.name === 'RobotMap') {
             iconName = focused ? 'map' : 'map-outline';
-          } else if (route.name === 'Monitoring') {
-            iconName = focused ? 'eye' : 'eye-outline';
           } else if (route.name === 'Reports') {
             iconName = focused ? 'document-text' : 'document-text-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
-          } else if (route.name === 'Help') {
-            iconName = focused ? 'help-circle' : 'help-circle-outline';
           } else if (route.name === 'Logout') {
             iconName = focused ? 'log-out' : 'log-out-outline';
+          } else if (route.name === 'FaceAuth') {
+            iconName = focused ? 'camera' : 'camera-outline';
+          } else if (route.name === 'VoiceAuth') {
+            iconName = focused ? 'mic' : 'mic-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -52,25 +57,53 @@ function TabNavigator() {
       <Tab.Screen name="Dashboard" component={Dashboard} />
       <Tab.Screen name="Tasks" component={Tasks} />
       <Tab.Screen name="RobotMap" component={RobotMap} options={{ title: 'Robot Map' }} />
-      <Tab.Screen name="Monitoring" component={Monitoring} />
       <Tab.Screen name="Reports" component={Reports} />
       <Tab.Screen name="Settings" component={Settings} />
-      <Tab.Screen name="Help" component={Help} />
-      <Tab.Screen name="Logout" component={Logout} />
+      {/* Logout removed from tab navigator as it's now in Settings */}
+      <Tab.Screen name="FaceAuth" component={FaceAuth} options={{ title: 'Face Auth' }} />
+      <Tab.Screen name="VoiceAuth" component={VoiceAuth} options={{ title: 'Voice Auth' }} />
     </Tab.Navigator>
+  );
+}
+
+function AppContent() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setIsLoggedIn(!!user);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (loading) {
+    return null; // Or a loading screen
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {isLoggedIn ? (
+          <>
+            <Stack.Screen name="Main" component={TabNavigator} />
+            <Stack.Screen name="SupplyRequest" component={SupplyRequest} />
+          </>
+        ) : (
+          <Stack.Screen name="Login" component={Login} />
+        )}
+      </Stack.Navigator>
+      <StatusBar style="auto" />
+    </NavigationContainer>
   );
 }
 
 export default function App() {
   return (
     <TaskProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Main" component={TabNavigator} />
-          <Stack.Screen name="SupplyRequest" component={SupplyRequest} />
-        </Stack.Navigator>
-        <StatusBar style="auto" />
-      </NavigationContainer>
+      <AppContent />
     </TaskProvider>
   );
 }

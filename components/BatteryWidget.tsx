@@ -9,7 +9,6 @@ function BatteryWidget({ battery }: BatteryWidgetProps) {
 	const getBatteryColor = (level: number): string => {
 		if (level >= 71) return 'green';
 		if (level >= 31) return 'yellow';
-		if (level >= 16) return 'orange';
 		return 'red';
 	};
 
