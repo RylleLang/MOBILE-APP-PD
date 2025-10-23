@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import { useTaskContext } from '../components/TaskContext';
+import { getDatabase, ref, set, get } from 'firebase/database';
 
 type LoginProps = {
   navigation: any;
@@ -17,6 +18,8 @@ function Login({ navigation }: LoginProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminCreationPassword, setAdminCreationPassword] = useState('');
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -37,13 +40,29 @@ function Login({ navigation }: LoginProps) {
       return;
     }
 
+    if (!isLogin && isAdmin && adminCreationPassword !== 'admin') {
+      Alert.alert('Error', 'Invalid admin creation password');
+      return;
+    }
+
     setLoading(true);
     try {
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         await AsyncStorage.setItem('userLoggedIn', 'true');
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        const db = getDatabase();
+        const userRef = ref(db, 'users/' + user.uid);
+        await set(userRef, {
+          email: user.email,
+          name: '',
+          contact: '',
+          gender: '',
+          faceUri: null,
+          isAdmin: isAdmin,
+        });
         Alert.alert('Success', 'Account created successfully!');
         setIsLogin(true);
       }
@@ -53,6 +72,8 @@ function Login({ navigation }: LoginProps) {
       setLoading(false);
     }
   };
+
+
 
   if (user) {
     return (
@@ -82,13 +103,30 @@ function Login({ navigation }: LoginProps) {
         secureTextEntry
       />
       {!isLogin && (
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
+        <>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+          <TouchableOpacity style={styles.checkboxContainer} onPress={() => setIsAdmin(!isAdmin)}>
+            <View style={[styles.checkbox, isAdmin && styles.checkboxChecked]}>
+              {isAdmin && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={[styles.checkboxText, isDarkMode && styles.darkText]}>Create as Admin Account</Text>
+          </TouchableOpacity>
+          {isAdmin && (
+            <TextInput
+              style={styles.input}
+              placeholder="Admin Creation Password"
+              value={adminCreationPassword}
+              onChangeText={setAdminCreationPassword}
+              secureTextEntry
+            />
+          )}
+        </>
       )}
       <TouchableOpacity style={styles.button} onPress={handleAuth} disabled={loading}>
         {loading ? (
@@ -102,6 +140,7 @@ function Login({ navigation }: LoginProps) {
           {isLogin ? "Don't have an account? Create one" : 'Already have an account? Login'}
         </Text>
       </TouchableOpacity>
+
     </View>
   );
 }
@@ -160,6 +199,43 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     color: '#666',
+  },
+  adminButton: {
+    marginTop: 10,
+    padding: 10,
+  },
+  adminButtonText: {
+    color: '#1976D2',
+    fontSize: 14,
+    textDecorationLine: 'underline',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    alignSelf: 'flex-start',
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#1976D2',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  checkboxChecked: {
+    backgroundColor: '#1976D2',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  checkboxText: {
+    fontSize: 16,
+    color: '#424242',
   },
 });
 

@@ -2,17 +2,18 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
 import { Camera, CameraView } from 'expo-camera';
 import { useTaskContext } from '../components/TaskContext';
+import { auth } from '../firebaseConfig';
 
 type FaceAuthProps = {
   navigation: any;
 };
 
 function FaceAuth({ navigation }: FaceAuthProps) {
-  const { isFaceAuthenticated, setIsFaceAuthenticated, setIsVoiceEnabled } = useTaskContext();
+  const { isFaceAuthenticated, setIsFaceAuthenticated, setIsVoiceEnabled, savedFaces, setSavedFaces, userProfile, setUserProfile } = useTaskContext();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [savedFaces, setSavedFaces] = useState<any[]>([]);
   const [cameraType, setCameraType] = useState<'front' | 'back'>('front');
   const [faceInPosition, setFaceInPosition] = useState(false);
+
   const cameraRef = useRef<CameraView>(null);
 
   React.useEffect(() => {
@@ -22,14 +23,40 @@ function FaceAuth({ navigation }: FaceAuthProps) {
     })();
   }, []);
 
-
-
   const captureFace = async () => {
+    // Check if user profile is complete
+    if (!userProfile.name || !userProfile.contact || !auth.currentUser?.email) {
+      Alert.alert('Incomplete Profile', 'Please complete your user profile in Settings before capturing a face.');
+      return;
+    }
+
+    if (savedFaces.length > 0) {
+      Alert.alert(
+        'Face Already Saved',
+        'You already have a saved face. Do you want to change it or delete the existing one?',
+        [
+          { text: 'Change', onPress: () => proceedWithCapture(true) },
+          { text: 'Delete', onPress: () => deleteExistingFace() },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    } else {
+      proceedWithCapture(false);
+    }
+  };
+
+  const proceedWithCapture = async (replace: boolean) => {
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync();
-        // In a real app, you'd save this to storage or send to server for authentication
-        setSavedFaces([...savedFaces, photo]);
+        const faceWithDetails = { ...photo, details: { name: userProfile.name, contact: userProfile.contact, email: userProfile.email } };
+        if (replace) {
+          setSavedFaces([faceWithDetails]);
+        } else {
+          setSavedFaces([...savedFaces, faceWithDetails]);
+        }
+        // Update user profile with the face URI
+        setUserProfile({ ...userProfile, faceUri: photo.uri });
         setIsFaceAuthenticated(true);
         setIsVoiceEnabled(true);
         Alert.alert('Face Authenticated', 'Face captured and authenticated. Voice commands are now enabled.');
@@ -39,6 +66,14 @@ function FaceAuth({ navigation }: FaceAuthProps) {
     } else {
       Alert.alert('Camera not ready', 'Please wait for camera to initialize.');
     }
+  };
+
+  const deleteExistingFace = () => {
+    setSavedFaces([]);
+    setUserProfile({ ...userProfile, faceUri: undefined });
+    setIsFaceAuthenticated(false);
+    setIsVoiceEnabled(false);
+    Alert.alert('Face Deleted', 'Your saved face has been deleted.');
   };
 
   const toggleCameraType = () => {

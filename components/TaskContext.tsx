@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import { auth } from '../firebaseConfig';
 
 export interface Task {
   id: string;
@@ -10,6 +12,15 @@ export interface Task {
   timestamp: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  contact: string;
+  email: string;
+  gender: string;
+  faceUri?: string;
+}
+
 interface TaskContextType {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'timestamp'>) => void;
@@ -19,6 +30,16 @@ interface TaskContextType {
   setIsVoiceEnabled: (enabled: boolean) => void;
   isDarkMode: boolean;
   setIsDarkMode: (dark: boolean) => void;
+  savedFaces: any[];
+  setSavedFaces: (faces: any[]) => void;
+  updateFace: (index: number, updatedFace: any) => void;
+  deleteFace: (index: number) => void;
+  userProfile: { name: string; contact: string; email: string; gender: string; faceUri?: string };
+  setUserProfile: (profile: { name: string; contact: string; email: string; gender: string; faceUri?: string }) => void;
+  users: User[];
+  addUser: (user: Omit<User, 'id'>) => void;
+  updateUser: (index: number, updatedUser: User) => void;
+  deleteUser: (index: number) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -60,6 +81,28 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   const [isFaceAuthenticated, setIsFaceAuthenticated] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [savedFaces, setSavedFaces] = useState<any[]>([]);
+  const [userProfile, setUserProfile] = useState({ name: '', contact: '', email: '', gender: '', faceUri: undefined });
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const db = getDatabase();
+    const usersRef = ref(db, 'users/');
+    const unsubscribe = onValue(usersRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const userList: User[] = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        }));
+        setUsers(userList);
+      } else {
+        setUsers([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const addTask = (newTask: Omit<Task, 'id' | 'timestamp'>) => {
     const task: Task = {
@@ -68,6 +111,30 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
       timestamp: new Date().toLocaleString(),
     };
     setTasks((prev) => [...prev, task]);
+  };
+
+  const updateFace = (index: number, updatedFace: any) => {
+    setSavedFaces((prev) => prev.map((face, i) => (i === index ? updatedFace : face)));
+  };
+
+  const deleteFace = (index: number) => {
+    setSavedFaces((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const addUser = (newUser: Omit<User, 'id'>) => {
+    const user: User = {
+      ...newUser,
+      id: `USER-${Date.now()}`,
+    };
+    setUsers((prev) => [...prev, user]);
+  };
+
+  const updateUser = (index: number, updatedUser: User) => {
+    setUsers((prev) => prev.map((user, i) => (i === index ? updatedUser : user)));
+  };
+
+  const deleteUser = (index: number) => {
+    setUsers((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -79,7 +146,17 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
       isVoiceEnabled,
       setIsVoiceEnabled,
       isDarkMode,
-      setIsDarkMode
+      setIsDarkMode,
+      savedFaces,
+      setSavedFaces,
+      updateFace,
+      deleteFace,
+      userProfile,
+      setUserProfile,
+      users,
+      addUser,
+      updateUser,
+      deleteUser
     }}>
       {children}
     </TaskContext.Provider>

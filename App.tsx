@@ -27,6 +27,7 @@ function TabNavigator() {
     <Tab.Navigator
       initialRouteName="Dashboard"
       screenOptions={({ route }) => ({
+        headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home-outline';
 
@@ -58,10 +59,10 @@ function TabNavigator() {
       <Tab.Screen name="Tasks" component={Tasks} />
       <Tab.Screen name="RobotMap" component={RobotMap} options={{ title: 'Robot Map' }} />
       <Tab.Screen name="Reports" component={Reports} />
-      <Tab.Screen name="Settings" component={Settings} />
       {/* Logout removed from tab navigator as it's now in Settings */}
       <Tab.Screen name="FaceAuth" component={FaceAuth} options={{ title: 'Face Auth' }} />
       <Tab.Screen name="VoiceAuth" component={VoiceAuth} options={{ title: 'Voice Auth' }} />
+      <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
   );
 }
