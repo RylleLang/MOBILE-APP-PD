@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, ScrollView, Image, Modal, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,6 +6,7 @@ import { signOut, deleteUser, updateEmail, updatePassword, EmailAuthProvider, re
 import { auth } from '../firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
 import { useTaskContext, User } from '../components/TaskContext';
+import { getDatabase, ref, get } from 'firebase/database';
 
 function Settings() {
   const navigation = useNavigation();
@@ -29,7 +30,27 @@ function Settings() {
   const [faceEditData, setFaceEditData] = useState({ name: '', contact: '', email: '' });
   const [showProfileViewModal, setShowProfileViewModal] = useState(false);
 
-  const isAdmin = auth.currentUser?.email === 'admin@admin.com';
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          const db = getDatabase();
+          const userRef = ref(db, `users/${user.uid}`);
+          const snapshot = await get(userRef);
+          if (snapshot.exists()) {
+            setIsAdmin(snapshot.val().isAdmin === true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+      }
+    };
+
+    checkAdminStatus();
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -499,29 +520,30 @@ function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E3F2FD', // Light blue background
+    backgroundColor: '#101828', // Deep dark blue
     padding: 20,
   },
   darkContainer: {
-    backgroundColor: '#121212', // Dark background
+    backgroundColor: '#101828',
   },
   pageTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#0D47A1',
+    color: '#60A5FA', // Vibrant blue accent
     marginBottom: 10,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#0D47A1', // Dark blue
+    color: '#60A5FA',
     textAlign: 'center',
     marginBottom: 30,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   darkText: {
-    color: '#FFFFFF', // White text for dark mode
+    color: '#F3F4F6',
   },
   section: {
     marginBottom: 30,
@@ -529,7 +551,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#0D47A1',
+    color: '#60A5FA',
     marginBottom: 15,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
@@ -537,49 +559,49 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: '#1A2233',
+    padding: 18,
+    borderRadius: 18,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 2,
   },
   darkSettingItem: {
-    backgroundColor: '#1E1E1E', // Dark setting item
+    backgroundColor: '#1A2233',
   },
   settingText: {
     fontSize: 16,
-    color: '#424242',
+    color: '#F3F4F6',
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   settingValue: {
     fontSize: 16,
-    color: '#1976D2',
+    color: '#60A5FA',
     fontWeight: '500',
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#0D47A1',
+    color: '#60A5FA',
     marginBottom: 10,
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   faceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#1A2233',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 18,
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 2,
   },
   darkFaceItem: {
     backgroundColor: '#1E1E1E',

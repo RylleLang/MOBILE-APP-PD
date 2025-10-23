@@ -30,7 +30,6 @@ function TabNavigator() {
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: keyof typeof Ionicons.glyphMap = 'home-outline';
-
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Tasks') {
@@ -48,11 +47,31 @@ function TabNavigator() {
           } else if (route.name === 'VoiceAuth') {
             iconName = focused ? 'mic' : 'mic-outline';
           }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return <Ionicons name={iconName} size={28} color={focused ? '#3b82f6' : '#b0b3b8'} style={{ marginBottom: 2 }} />;
         },
-        tabBarActiveTintColor: '#007bff',
-        tabBarInactiveTintColor: 'gray',
+        tabBarActiveTintColor: '#3b82f6',
+        tabBarInactiveTintColor: '#b0b3b8',
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+          marginBottom: 6,
+        },
+        tabBarStyle: {
+          backgroundColor: 'rgba(20, 24, 36, 0.98)',
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 70,
+          borderTopWidth: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 10,
+        },
       })}
     >
       <Tab.Screen name="Dashboard" component={Dashboard} />

@@ -1,7 +1,12 @@
-# TODO: Implement Face Verification for Voice Commands
+# TODO for Account Creation Enhancement
 
-- [x] Change title in VoiceAuth.tsx from "Voice Recognition" to "Voice Command to a Bot"
-- [x] Add a simulated face verification function in VoiceAuth.tsx
-- [x] Modify startRecording in VoiceAuth.tsx to require face verification each time before starting recording
-- [x] Handle verification failure by preventing recording and showing an alert
-- [ ] Test the implementation to ensure verification is required each time
+## Tasks
+- [x] Add state variables for name, contact, and gender in Login.tsx
+- [x] Add TextInput fields for name, contact, and gender in the sign-up form
+- [x] Update validation in handleAuth to require name, contact, and gender for sign-up
+- [x] Update database save operations to store the entered name, contact, and gender values
+- [x] Add username state and input field in sign-up
+- [x] Update database to save username
+- [x] Modify login to allow login with username or email
+- [x] Add uniqueness checks for username, email, and contact during sign-up
+- [ ] Test the sign-up and login functionality

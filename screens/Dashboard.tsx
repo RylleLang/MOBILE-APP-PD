@@ -43,26 +43,50 @@ function Dashboard({ navigation }: DashboardProps) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#E3F2FD', // Light blue background
+		backgroundColor: '#101828', // Deep dark blue
 		padding: 20,
 	},
 	darkContainer: {
-		backgroundColor: '#121212', // Dark background
+		backgroundColor: '#101828',
 	},
 	pageTitle: {
 		fontSize: 28,
 		fontWeight: 'bold',
-		color: '#0D47A1',
+		color: '#60A5FA', // Vibrant blue accent
 		marginBottom: 20,
 		textAlign: 'center',
+		letterSpacing: 0.5,
 	},
 	darkText: {
-		color: '#ffffff',
+		color: '#F3F4F6',
 	},
 	row: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		marginBottom: 20,
+	},
+	card: {
+		backgroundColor: '#1A2233',
+		borderRadius: 18,
+		padding: 16,
+		marginBottom: 16,
+		shadowColor: '#000',
+		shadowOpacity: 0.12,
+		shadowRadius: 8,
+		elevation: 2,
+	},
+	button: {
+		backgroundColor: '#2563EB',
+		borderRadius: 24,
+		paddingVertical: 12,
+		paddingHorizontal: 24,
+		alignItems: 'center',
+		marginVertical: 8,
+	},
+	buttonText: {
+		color: '#fff',
+		fontWeight: '600',
+		fontSize: 16,
 	},
 });
 
