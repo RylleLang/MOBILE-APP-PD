@@ -9,7 +9,7 @@ import { useTaskContext, User } from '../components/TaskContext';
 
 function Settings() {
   const navigation = useNavigation();
-  const { isDarkMode, setIsDarkMode, savedFaces, userProfile, setUserProfile, updateFace, deleteFace, users } = useTaskContext();
+  const { isDarkMode, setIsDarkMode, savedFaces, userProfile, updateUserProfile, updateFace, deleteFace, users } = useTaskContext();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [showFaceDetailsModal, setShowFaceDetailsModal] = useState(false);
   const [selectedFace, setSelectedFace] = useState<any>(null);
@@ -146,8 +146,7 @@ function Settings() {
   const handleNameUpdate = async () => {
     try {
       const updatedProfile = { ...userProfile, name: nameValue };
-      await AsyncStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-      setUserProfile(updatedProfile);
+      await updateUserProfile(updatedProfile);
       setShowNameModal(false);
       Alert.alert('Success', 'Name updated successfully.');
     } catch (error) {
@@ -158,8 +157,7 @@ function Settings() {
   const handleContactUpdate = async () => {
     try {
       const updatedProfile = { ...userProfile, contact: contactValue };
-      await AsyncStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-      setUserProfile(updatedProfile);
+      await updateUserProfile(updatedProfile);
       setShowContactModal(false);
       Alert.alert('Success', 'Contact updated successfully.');
     } catch (error) {
@@ -170,8 +168,7 @@ function Settings() {
   const handleGenderUpdate = async () => {
     try {
       const updatedProfile = { ...userProfile, gender: genderValue };
-      await AsyncStorage.setItem('userProfile', JSON.stringify(updatedProfile));
-      setUserProfile(updatedProfile);
+      await updateUserProfile(updatedProfile);
       setShowGenderModal(false);
       Alert.alert('Success', 'Gender updated successfully.');
     } catch (error) {

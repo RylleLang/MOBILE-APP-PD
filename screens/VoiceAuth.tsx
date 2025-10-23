@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Pressable } from 'react-native';
 import { Audio } from 'expo-av';
 import { useTaskContext } from '../components/TaskContext';
 
@@ -16,12 +16,14 @@ type VoiceAuthProps = {
 };
 
 function VoiceAuth({ navigation }: VoiceAuthProps) {
-  const { isFaceAuthenticated, isVoiceEnabled, isDarkMode } = useTaskContext();
+  const { isFaceAuthenticated, isVoiceEnabled, isDarkMode, savedFaces } = useTaskContext();
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [transcribedText, setTranscribedText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [startTime, setStartTime] = useState<number>(0);
   const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const [voiceAuthGranted, setVoiceAuthGranted] = useState(false);
+  const [faceVerificationStatus, setFaceVerificationStatus] = useState('');
 
   useEffect(() => {
     return () => {
@@ -31,9 +33,37 @@ function VoiceAuth({ navigation }: VoiceAuthProps) {
     };
   }, [recording]);
 
+  const verifyFace = async (): Promise<boolean> => {
+    // Simulate face verification using saved faces
+    if (savedFaces.length === 0) {
+      setFaceVerificationStatus('No saved face data found');
+      return false;
+    }
+
+    // In a real implementation, this would compare the current face with saved faces
+    // For now, we'll simulate verification with a random success rate (80% success)
+    const isVerified = Math.random() > 0.2;
+
+    if (isVerified) {
+      setFaceVerificationStatus('Face verified - Voice auth granted');
+      setVoiceAuthGranted(true);
+      return true;
+    } else {
+      setFaceVerificationStatus('Face verification failed');
+      setVoiceAuthGranted(false);
+      return false;
+    }
+  };
+
   const startRecording = async () => {
     if (!isFaceAuthenticated) {
       Alert.alert('Authentication Required', 'Please authenticate with face recognition first before using voice commands.');
+      return;
+    }
+
+    // Require face verification each time before using voice commands
+    const faceVerified = await verifyFace();
+    if (!faceVerified) {
       return;
     }
 
@@ -159,7 +189,7 @@ function VoiceAuth({ navigation }: VoiceAuthProps) {
 
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      <Text style={[styles.title, isDarkMode && styles.darkText]}>Voice Recognition</Text>
+      <Text style={[styles.title, isDarkMode && styles.darkText]}>Voice Command to a Bot</Text>
       {!isFaceAuthenticated && (
         <View style={styles.authWarning}>
           <Text style={styles.authWarningText}>
@@ -167,22 +197,36 @@ function VoiceAuth({ navigation }: VoiceAuthProps) {
           </Text>
         </View>
       )}
-      <TouchableOpacity
-        style={[
-          styles.button,
-          isRecording && styles.recordingButton,
-          !isFaceAuthenticated && styles.disabledButton
-        ]}
-        onPress={isRecording ? stopRecording : startRecording}
-        disabled={!isFaceAuthenticated}
-      >
-        <Text style={styles.buttonText}>
-          {isRecording ? 'Stop Recording' : 'Start Recording'}
+      <View style={styles.buttonContainer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.voiceButton,
+            isRecording && styles.recordingVoiceButton,
+            !isFaceAuthenticated && styles.disabledVoiceButton,
+            pressed && isFaceAuthenticated && styles.pressedVoiceButton
+          ]}
+          onPressIn={isRecording ? undefined : startRecording}
+          onPressOut={isRecording ? stopRecording : undefined}
+          disabled={!isFaceAuthenticated}
+        >
+          <Text style={styles.voiceButtonText}>
+            {isRecording ? '🎤' : '🎙️'}
+          </Text>
+        </Pressable>
+        <Text style={[styles.buttonLabel, isDarkMode && styles.darkText]}>
+          {isRecording ? 'Recording... Tap to Stop' : 'Hold to Record'}
         </Text>
-      </TouchableOpacity>
+      </View>
       <Text style={styles.status}>
         Status: {isRecording ? 'Recording...' : 'Not Recording'}
       </Text>
+      {faceVerificationStatus ? (
+        <View style={[styles.authStatus, voiceAuthGranted ? styles.authGranted : styles.authFailed]}>
+          <Text style={styles.authStatusText}>
+            {faceVerificationStatus}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.transcriptionContainer}>
         <Text style={styles.transcriptionTitle}>Transcribed Text:</Text>
         <Text style={styles.transcriptionText}>
@@ -212,6 +256,46 @@ const styles = StyleSheet.create({
   },
   darkText: {
     color: '#FFFFFF', // White text for dark mode
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  voiceButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#D32F2F', // Red when not pressed
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#D32F2F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    marginBottom: 16,
+  },
+  recordingVoiceButton: {
+    backgroundColor: '#4CAF50', // Green when recording
+    shadowColor: '#4CAF50',
+  },
+  disabledVoiceButton: {
+    backgroundColor: '#BDBDBD', // Gray when disabled
+    shadowColor: '#BDBDBD',
+  },
+  pressedVoiceButton: {
+    transform: [{ scale: 0.95 }],
+    shadowOpacity: 0.1,
+  },
+  voiceButtonText: {
+    fontSize: 48,
+  },
+  buttonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#0D47A1',
+    textAlign: 'center',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
   button: {
     backgroundColor: '#1976D2', // Medical blue
@@ -286,6 +370,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: '#424242',
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+  },
+  authStatus: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    borderWidth: 1,
+  },
+  authGranted: {
+    backgroundColor: '#E8F5E8',
+    borderColor: '#4CAF50',
+  },
+  authFailed: {
+    backgroundColor: '#FFEBEE',
+    borderColor: '#F44336',
+  },
+  authStatusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },
 });

@@ -63,6 +63,15 @@ function Login({ navigation }: LoginProps) {
           faceUri: null,
           isAdmin: isAdmin,
         });
+        // Also create a user profile node that Settings/TaskContext expects
+        const userProfileRef = ref(db, `userProfiles/${user.uid}`);
+        await set(userProfileRef, {
+          name: '',
+          contact: '',
+          email: user.email || '',
+          gender: '',
+          faceUri: null,
+        });
         Alert.alert('Success', 'Account created successfully!');
         setIsLogin(true);
       }

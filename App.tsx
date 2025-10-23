@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebaseConfig';
+import { app, auth } from './firebaseConfig';
 import Login from './screens/Login';
 import Dashboard from './screens/Dashboard';
 import Tasks from './screens/Tasks';

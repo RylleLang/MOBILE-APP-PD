@@ -9,7 +9,7 @@ type FaceAuthProps = {
 };
 
 function FaceAuth({ navigation }: FaceAuthProps) {
-  const { isFaceAuthenticated, setIsFaceAuthenticated, setIsVoiceEnabled, savedFaces, setSavedFaces, userProfile, setUserProfile } = useTaskContext();
+  const { isFaceAuthenticated, setIsFaceAuthenticated, setIsVoiceEnabled, savedFaces, setSavedFaces, userProfile, updateUserProfile } = useTaskContext();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [cameraType, setCameraType] = useState<'front' | 'back'>('front');
   const [faceInPosition, setFaceInPosition] = useState(false);
@@ -56,7 +56,7 @@ function FaceAuth({ navigation }: FaceAuthProps) {
           setSavedFaces([...savedFaces, faceWithDetails]);
         }
         // Update user profile with the face URI
-        setUserProfile({ ...userProfile, faceUri: photo.uri });
+        await updateUserProfile({ ...userProfile, faceUri: photo.uri });
         setIsFaceAuthenticated(true);
         setIsVoiceEnabled(true);
         Alert.alert('Face Authenticated', 'Face captured and authenticated. Voice commands are now enabled.');
@@ -68,9 +68,9 @@ function FaceAuth({ navigation }: FaceAuthProps) {
     }
   };
 
-  const deleteExistingFace = () => {
+  const deleteExistingFace = async () => {
     setSavedFaces([]);
-    setUserProfile({ ...userProfile, faceUri: undefined });
+    await updateUserProfile({ ...userProfile, faceUri: undefined });
     setIsFaceAuthenticated(false);
     setIsVoiceEnabled(false);
     Alert.alert('Face Deleted', 'Your saved face has been deleted.');

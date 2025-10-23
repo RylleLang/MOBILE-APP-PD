@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { getDatabase, ref, onValue, set, update } from 'firebase/database';
 import { auth } from '../firebaseConfig';
 
 export interface Task {
@@ -35,7 +35,7 @@ interface TaskContextType {
   updateFace: (index: number, updatedFace: any) => void;
   deleteFace: (index: number) => void;
   userProfile: { name: string; contact: string; email: string; gender: string; faceUri?: string };
-  setUserProfile: (profile: { name: string; contact: string; email: string; gender: string; faceUri?: string }) => void;
+  updateUserProfile: (profile: { name: string; contact: string; email: string; gender: string; faceUri?: string }) => Promise<void>;
   users: User[];
   addUser: (user: Omit<User, 'id'>) => void;
   updateUser: (index: number, updatedUser: User) => void;
@@ -82,7 +82,8 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [savedFaces, setSavedFaces] = useState<any[]>([]);
-  const [userProfile, setUserProfile] = useState({ name: '', contact: '', email: '', gender: '', faceUri: undefined });
+  const [userProfile, setUserProfile] = useState<{ name: string; contact: string; email: string; gender: string; faceUri?: string }>({ name: '', contact: '', email: '', gender: '' });
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -103,6 +104,27 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
+  // Load user profile from Firebase when user is authenticated
+  useEffect(() => {
+    if (auth.currentUser) {
+      setIsLoadingProfile(true);
+      const db = getDatabase();
+      const userProfileRef = ref(db, `userProfiles/${auth.currentUser.uid}`);
+      const unsubscribe = onValue(userProfileRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          setUserProfile(data);
+        }
+        setIsLoadingProfile(false);
+      });
+
+      return () => unsubscribe();
+    } else {
+      setUserProfile({ name: '', contact: '', email: '', gender: '' });
+      setIsLoadingProfile(false);
+    }
+  }, [auth.currentUser]);
 
   const addTask = (newTask: Omit<Task, 'id' | 'timestamp'>) => {
     const task: Task = {
@@ -137,6 +159,23 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
     setUsers((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const updateUserProfile = async (profile: { name: string; contact: string; email: string; gender: string; faceUri?: string }) => {
+    try {
+      if (!auth.currentUser) {
+        throw new Error('No authenticated user');
+      }
+      console.log('Updating profile:', profile);
+      const db = getDatabase();
+      const userProfileRef = ref(db, `userProfiles/${auth.currentUser.uid}`);
+      await set(userProfileRef, profile);
+      setUserProfile(profile);
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      throw error; // Re-throw so caller can handle
+    }
+  };
+
   return (
     <TaskContext.Provider value={{
       tasks,
@@ -152,7 +191,7 @@ export const TaskProvider: React.FC<TaskProviderProps> = ({ children }) => {
       updateFace,
       deleteFace,
       userProfile,
-      setUserProfile,
+      updateUserProfile,
       users,
       addUser,
       updateUser,
